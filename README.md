@@ -107,8 +107,10 @@ Run the SQL migrations in order in the Supabase **SQL Editor** (or via the Supab
 **Auth (required for sign-in):**
 
 - In Supabase → **Authentication** → **Providers**, enable the methods you want (e.g. Email, Google).
-- Under **URL configuration**, set **Site URL** to `http://localhost:3000` for local dev.
-- Add `http://localhost:3000/auth/callback` to **Redirect URLs**.
+- Under **URL configuration**:
+  - **Local:** Site URL `http://localhost:3000`, redirect URL `http://localhost:3000/auth/callback`
+  - **Production:** Site URL `https://your-app.vercel.app`, redirect URL `https://your-app.vercel.app/auth/callback` (add both local and prod URLs if you use one Supabase project for both)
+- Set `NEXT_PUBLIC_SITE_URL` in Vercel env vars to your production URL (no trailing slash).
 
 **Admin users:**
 
@@ -210,7 +212,8 @@ The app is designed to deploy on **[Vercel](https://vercel.com)** (or any Node h
 1. Push this repo to GitHub.
 2. Import the project in Vercel and connect the repository.
 3. Add the same environment variables as in `.env.local`.
-4. Update Supabase **Site URL** and **Redirect URLs** to your production domain (e.g. `https://your-app.vercel.app/auth/callback`).
+4. Set `NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app` in Vercel.
+5. In Supabase → **Authentication** → **URL configuration**, set **Site URL** to your Vercel URL (not `localhost`) and add `https://your-app.vercel.app/auth/callback` under **Redirect URLs**. If the production callback is missing, Supabase falls back to Site URL and you will land on `localhost` after Google sign-in.
 
 **Note:** Vercel Hobby has a ~10s serverless timeout. Very large PDFs may need smaller files or a higher plan.
 

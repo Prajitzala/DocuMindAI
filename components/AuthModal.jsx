@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "../lib/supabase.js";
+import { getAuthCallbackUrl } from "../lib/site-url.js";
 import { dm } from "@/lib/design";
 
 const supabase = createClient();
@@ -68,7 +69,7 @@ export default function AuthModal({ onSuccess, inline = false }) {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: getAuthCallbackUrl("/dashboard"),
       },
     });
 
