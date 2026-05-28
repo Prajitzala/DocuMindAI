@@ -1,0 +1,123 @@
+# DocuMind AI — Cursor Rules
+
+## Project Context
+This is a Next.js 14 App Router project. It is a RAG (Retrieval-Augmented Generation)
+platform using LangChain.js, OpenAI GPT-4o, Supabase pgvector, and Vercel.
+
+---
+
+## Stack — Always Use These, Never Suggest Alternatives
+- Framework: Next.js 14 with App Router (not Pages Router)
+- Styling: TailwindCSS only — no inline styles, no CSS modules, no styled-components
+- AI: LangChain.js — not LlamaIndex, not Vercel AI SDK (unless asked)
+- Vector DB: Supabase pgvector — not Pinecone, not Weaviate
+- Storage + Auth: Supabase — not Firebase, not Clerk
+- Language: JavaScript (.js / .jsx) — not TypeScript unless explicitly asked
+
+---
+
+## Next.js App Router Rules
+
+- Default all components to Server Components unless they need interactivity
+- Add `'use client'` only when using: useState, useEffect, useRef, event handlers, browser APIs
+- API routes live in `app/api/**/route.js` — use named exports: GET, POST, PUT, DELETE
+- Use `next/navigation` (not `next/router`) for routing hooks
+- Use `next/image` for all images
+- Server components fetch data directly — no useEffect for data fetching
+- Streaming responses use `new Response(readableStream)` in route handlers
+
+## File & Folder Conventions
+- Pages: `app/[route]/page.jsx`
+- Layouts: `app/[route]/layout.jsx`
+- API: `app/api/[route]/route.js`
+- Reusable UI: `components/[ComponentName].jsx` (PascalCase)
+- Utilities / lib: `lib/[name].js` (camelCase)
+- Supabase client (browser): `lib/supabase.js`
+- Supabase client (server): `lib/supabase-server.js`
+
+---
+
+## Supabase Rules
+
+- Browser client (`lib/supabase.js`): uses `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Server client (`lib/supabase-server.js`): uses `SUPABASE_SERVICE_KEY` — server only
+- NEVER import `supabase-server.js` in any client component or `'use client'` file
+- NEVER expose `SUPABASE_SERVICE_KEY` to the browser
+- Always handle Supabase errors: `const { data, error } = await supabase...` — check error
+- RLS is enabled — always pass `user_id` when inserting user-upload documents
+
+### Namespace Values (Hardcoded — Never Change)
+- `'user-upload'` — user's own PDFs
+- `'kb-hr'` — HR knowledge base
+- `'kb-legal'` — Legal knowledge base
+- `'kb-engineering'` — Engineering knowledge base
+
+---
+
+## LangChain.js Rules
+
+- Import from specific subpaths: `'langchain/embeddings/openai'` not `'langchain'`
+- Always use `RecursiveCharacterTextSplitter` with `chunkSize: 500, chunkOverlap: 50`
+- Always use `text-embedding-3-small` for embeddings (1536 dimensions)
+- Always use `gpt-4o` for generation — not gpt-3.5, not gpt-4-turbo
+- For streaming: use `llm.stream()` and pipe to a `ReadableStream` in the route handler
+- Always include `returnSourceDocuments: true` in QA chains for citations
+
+---
+
+## Code Style
+
+- Use `const` over `let` wherever possible — never `var`
+- Use async/await — not .then().catch() chains
+- Always wrap async operations in try/catch in API routes
+- Return consistent JSON error shape: `{ error: 'message' }` with appropriate HTTP status
+- Use optional chaining: `data?.field` not `data && data.field`
+- Destructure props at component top: `function Component({ prop1, prop2 }) {}`
+- Export components as default: `export default function ComponentName() {}`
+- Export utilities as named: `export async function myUtil() {}`
+
+---
+
+## TailwindCSS Rules
+
+- Mobile-first responsive: base styles for mobile, `md:` and `lg:` for larger screens
+- Use Tailwind's color palette — no custom hex values unless in `tailwind.config.js`
+- For dark mode: use `dark:` prefix — document has `className="dark"` on root
+- Common patterns to reuse:
+  - Card: `rounded-xl border border-gray-200 bg-white p-6 shadow-sm`
+  - Button primary: `rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700`
+  - Input: `rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`
+
+---
+
+## AI / RAG Specific Rules
+
+- Never return raw LLM output without source citations
+- Always validate that `namespace` is one of the 4 allowed values before querying
+- Chunk size decisions: 500 tokens per chunk, 50 overlap — do not change without reason
+- Never store the full PDF in the database — only chunks + embeddings
+- PDFs are stored in Supabase Storage bucket `pdfs` — embeddings in `documents` table
+- Always include `metadata: { filename, page, source }` when inserting document chunks
+
+---
+
+## Security Rules
+
+- Never log OpenAI API keys or Supabase service keys
+- Validate all user input before passing to LangChain or Supabase
+- File uploads: only accept `application/pdf` MIME type
+- Max file size: 10MB per upload
+- Always check `auth.uid()` in server routes before any database operation
+- Admin routes (`/api/admin/*`) must verify admin role from Supabase user metadata
+
+---
+
+## What NOT to Do
+- Do not use Pages Router (`pages/` directory)
+- Do not use `getServerSideProps` or `getStaticProps`
+- Do not use `axios` — use native `fetch`
+- Do not use `moment.js` — use native `Date` or `date-fns`
+- Do not install Pinecone, Firebase, or Clerk
+- Do not add TypeScript config unless asked
+- Do not use `useEffect` for data fetching in Server Components
+- Do not cache the Supabase server client across requests
